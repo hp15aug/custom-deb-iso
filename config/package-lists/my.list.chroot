@@ -1,5 +1,5 @@
 # Base Packages
-task-gnome-desktop 
+task-kde-desktop 
 cryptsetup 
 cryptsetup-initramfs
 
@@ -10,13 +10,14 @@ tmux
 gparted
 btop
 vlc
-gnome-tweaks
 gparted
-gnome-shell-extension-manager
+plasma-discover
+kde-config-gtk-style
 podman
 chrony
 zsh
 gh
+gdu
 
 # scrcpy support
 android-sdk-platform-tools
