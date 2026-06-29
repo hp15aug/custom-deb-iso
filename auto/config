@@ -10,6 +10,6 @@ lb config noauto \
   --archive-areas "main contrib non-free non-free-firmware" \
   --binary-images iso-hybrid \
   --bootloader "grub-pc,grub-efi" \
-  --bootappend-live "boot=live components persistence persistence-encryption=luks live-config.user=misab" \
+  --bootappend-live "boot=live components persistence persistence-encryption=luks live-config.user=burn" \
   $DEBUG
 
