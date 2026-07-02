@@ -1,12 +1,9 @@
 #!/bin/sh
 set -e
-
 LOG="/var/log/custom-hook.log"
-
 log() {
     echo "[HOOK] $1" | tee -a "$LOG"
 }
-
 banner() {
     echo
     echo "=========================================="
@@ -15,109 +12,116 @@ banner() {
     echo
     echo "[HOOK] $1" >> "$LOG"
 }
-
 banner "Starting custom hook 900-install-extras"
-
 ##############################################
 # JULIAN FAIRFAX APT REPO
 ##############################################
 banner "Adding Julian Fairfax APT Repo (adw-gtk3)"
-
 JULIAN_KEY="/usr/share/keyrings/julians-package-repo.gpg"
 JULIAN_URL="https://julianfairfax.codeberg.page/package-repo/pub.gpg"
-
 log "Downloading Julian repo key"
 curl -A "Mozilla/5.0" -fsSL "$JULIAN_URL" -o /tmp/julian.pub.gpg
-
 log "Validating Julian key header"
 if ! head -n1 /tmp/julian.pub.gpg | grep -q "BEGIN PGP PUBLIC KEY BLOCK"; then
     echo "ERROR: Invalid or corrupted PGP key downloaded from $JULIAN_URL" >&2
     head -n20 /tmp/julian.pub.gpg
     exit 1
 fi
-
 log "Key header looks good; dearmoring with POSIX-compliant syntax"
 gpg --batch --yes --dearmor < /tmp/julian.pub.gpg > "$JULIAN_KEY"
-
 log "Configuring Julian repo"
 echo "deb [signed-by=$JULIAN_KEY] https://julianfairfax.codeberg.page/package-repo/debs packages main" \
     > /etc/apt/sources.list.d/julians-package-repo.list
-
+##############################################
+# CLOUDFLARE WARP APT REPO
+##############################################
+banner "Adding Cloudflare WARP APT Repo"
+CLOUDFLARE_KEY="/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg"
+CLOUDFLARE_URL="https://pkg.cloudflareclient.com/pubkey.gpg"
+log "Downloading Cloudflare WARP repo key"
+curl -fsSL "$CLOUDFLARE_URL" -o /tmp/cloudflare.pub.gpg
+log "Validating Cloudflare key header"
+if ! head -n1 /tmp/cloudflare.pub.gpg | grep -q "BEGIN PGP PUBLIC KEY BLOCK"; then
+    echo "ERROR: Invalid or corrupted PGP key downloaded from $CLOUDFLARE_URL" >&2
+    head -n20 /tmp/cloudflare.pub.gpg
+    exit 1
+fi
+log "Key header looks good; dearmoring"
+gpg --batch --yes --dearmor < /tmp/cloudflare.pub.gpg > "$CLOUDFLARE_KEY"
+log "Configuring Cloudflare WARP repo"
+echo "deb [signed-by=$CLOUDFLARE_KEY] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" \
+    > /etc/apt/sources.list.d/cloudflare-client.list
+##############################################
+# PROTONVPN APT REPO (via repo package)
+##############################################
+banner "Adding ProtonVPN APT Repo"
+cd /tmp
+PROTON_DEB="protonvpn-stable-release_1.0.8_all.deb"
+PROTON_SHA256="0b14e71586b22e498eb20926c48c7b434b751149b1f2af9902ef1cfe6b03e180"
+log "Downloading ProtonVPN repo package"
+wget -q "https://repo.protonvpn.com/debian/dists/stable/main/binary-all/$PROTON_DEB" -O "$PROTON_DEB"
+log "Verifying ProtonVPN repo package checksum"
+if ! echo "$PROTON_SHA256  $PROTON_DEB" | sha256sum --check -; then
+    echo "ERROR: Checksum mismatch for $PROTON_DEB" >&2
+    exit 1
+fi
+log "Checksum OK; installing ProtonVPN repo package"
+dpkg -i "./$PROTON_DEB"
+rm -f "/tmp/$PROTON_DEB"
 ##############################################
 # INSTALL MAIN APT PACKAGES
 ##############################################
 banner "Installing main APT packages"
-
 apt-get update -y
 apt-get install -y \
-    adw-gtk3
-
-
+    adw-gtk3 \
+    cloudflare-warp \
+    proton-vpn-gnome-desktop
 ##############################################
 # INSTALL MANUAL .DEB PACKAGES
 ##############################################
 banner "Installing additional .deb packages"
-
 TMPDIR="/tmp/custom-debs"
 mkdir -p "$TMPDIR"
-
 log "Downloading Windscribe"
 curl -fsSL \
     https://windscribe.com/install/desktop/linux_deb_x64 \
     -o "$TMPDIR/windscribe.deb"
-
 log "Downloading Free Download Manager"
 curl -fsSL \
     https://files2.freedownloadmanager.org/6/latest/freedownloadmanager.deb \
     -o "$TMPDIR/fdm.deb"
-
 log "Installing debs"
 dpkg -i "$TMPDIR"/*.deb || apt-get -fy install
-
-
 ##############################################
 # DOCKER INSTALL
 ##############################################
 banner "Installing Docker (get.docker.com)"
-
 curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
 sh /tmp/get-docker.sh
-
-
 ##############################################
 # TAILSCALE INSTALL
 ##############################################
 banner "Installing Tailscale"
-
 curl -fsSL https://tailscale.com/install.sh | sh
-
-
 ##############################################
 # BIBATA CURSOR THEME
 ##############################################
 banner "Installing Bibata Cursor Theme"
-
 cd /tmp
 curl -fsSL \
     https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.7/Bibata-Modern-Classic.tar.xz \
     -o bibata.tar.xz
-
 mkdir bibata
 tar -xf bibata.tar.xz -C bibata/
-
 log "Installing cursors to /usr/share/icons/"
 mkdir -p /usr/share/icons/
 cp -r bibata/Bibata-* /usr/share/icons/
-
-
 ##############################################
 # CLEANUP
 ##############################################
 banner "Cleaning up temporary files"
-
-rm -rf "$TMPDIR" /tmp/bibata /tmp/bibata.tar.xz /tmp/get-docker.sh /tmp/julian.pub.gpg
+rm -rf "$TMPDIR" /tmp/bibata /tmp/bibata.tar.xz /tmp/get-docker.sh /tmp/julian.pub.gpg /tmp/cloudflare.pub.gpg
 apt-get clean
-
-
 banner "Custom hook completed successfully"
 exit 0
