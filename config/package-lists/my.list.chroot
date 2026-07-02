@@ -1,6 +1,6 @@
 # Base Packages
-task-gnome-desktop 
-cryptsetup 
+task-gnome-desktop
+cryptsetup
 cryptsetup-initramfs
 
 # Tools
@@ -17,6 +17,8 @@ podman
 chrony
 zsh
 gh
+mpv
+distrobox
 
 # scrcpy support
 android-sdk-platform-tools
