@@ -93,12 +93,7 @@ curl -fsSL \
     -o "$TMPDIR/fdm.deb"
 log "Installing debs"
 dpkg -i "$TMPDIR"/*.deb || apt-get -fy install
-##############################################
-# DOCKER INSTALL
-##############################################
-banner "Installing Docker (get.docker.com)"
-curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
-sh /tmp/get-docker.sh
+
 ##############################################
 # TAILSCALE INSTALL
 ##############################################
