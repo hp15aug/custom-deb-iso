@@ -69,6 +69,25 @@ log "Checksum OK; installing ProtonVPN repo package"
 dpkg -i "./$PROTON_DEB"
 rm -f "/tmp/$PROTON_DEB"
 ##############################################
+# SIRIKALI APT REPO (OBS)
+##############################################
+banner "Adding SiriKali APT Repo (OBS)"
+SIRIKALI_KEY="/usr/share/keyrings/home-obs-mhogomchungu.gpg"
+SIRIKALI_URL="https://download.opensuse.org/repositories/home:obs_mhogomchungu/Debian_13/Release.key"
+log "Downloading SiriKali (OBS) repo key"
+curl -fsSL "$SIRIKALI_URL" -o /tmp/sirikali.pub.gpg
+log "Validating SiriKali key header"
+if ! head -n1 /tmp/sirikali.pub.gpg | grep -q "BEGIN PGP PUBLIC KEY BLOCK"; then
+    echo "ERROR: Invalid or corrupted PGP key downloaded from $SIRIKALI_URL" >&2
+    head -n20 /tmp/sirikali.pub.gpg
+    exit 1
+fi
+log "Key header looks good; dearmoring"
+gpg --batch --yes --dearmor < /tmp/sirikali.pub.gpg > "$SIRIKALI_KEY"
+log "Configuring SiriKali (OBS) repo"
+echo "deb [signed-by=$SIRIKALI_KEY] https://download.opensuse.org/repositories/home:/obs_mhogomchungu/Debian_13/ /" \
+    > /etc/apt/sources.list.d/home-obs-mhogomchungu.list
+##############################################
 # INSTALL MAIN APT PACKAGES
 ##############################################
 banner "Installing main APT packages"
@@ -76,7 +95,8 @@ apt-get update -y
 apt-get install -y \
     adw-gtk3 \
     cloudflare-warp \
-    proton-vpn-gnome-desktop
+    proton-vpn-gnome-desktop \
+    sirikali
 ##############################################
 # INSTALL MANUAL .DEB PACKAGES
 ##############################################
@@ -116,7 +136,7 @@ cp -r bibata/Bibata-* /usr/share/icons/
 # CLEANUP
 ##############################################
 banner "Cleaning up temporary files"
-rm -rf "$TMPDIR" /tmp/bibata /tmp/bibata.tar.xz /tmp/get-docker.sh /tmp/julian.pub.gpg /tmp/cloudflare.pub.gpg
+rm -rf "$TMPDIR" /tmp/bibata /tmp/bibata.tar.xz /tmp/get-docker.sh /tmp/julian.pub.gpg /tmp/cloudflare.pub.gpg /tmp/sirikali.pub.gpg
 apt-get clean
 banner "Custom hook completed successfully"
 exit 0
