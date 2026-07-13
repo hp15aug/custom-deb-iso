@@ -19,6 +19,7 @@ zsh
 gh
 mpv
 distrobox
+stress-ng
 
 # scrcpy support
 android-sdk-platform-tools
