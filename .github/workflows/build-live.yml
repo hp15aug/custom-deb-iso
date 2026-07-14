@@ -7,12 +7,12 @@ on:
         description: 'Enable debug mode'
         type: boolean
         required: false
-        default: false
+        default: true
       release:
         description: 'Upload to GitHub Release?'
         type: boolean
         required: false
-        default: true
+        default: false
 
 jobs:
   build-iso:
