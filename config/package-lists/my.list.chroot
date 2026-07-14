@@ -17,6 +17,7 @@ podman
 chrony
 zsh
 gh
+gdu
 mpv
 distrobox
 stress-ng
