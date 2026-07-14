@@ -95,8 +95,8 @@ apt-get update -y
 apt-get install -y \
     adw-gtk3 \
     cloudflare-warp \
-    proton-vpn-gnome-desktop \
-    sirikali
+    proton-vpn-gnome-desktop
+   # sirikali
 ##############################################
 # INSTALL MANUAL .DEB PACKAGES
 ##############################################
