@@ -49,7 +49,11 @@ fi
 log "Key header looks good; dearmoring"
 gpg --batch --yes --dearmor < /tmp/cloudflare.pub.gpg > "$CLOUDFLARE_KEY"
 log "Configuring Cloudflare WARP repo"
-echo "deb [signed-by=$CLOUDFLARE_KEY] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" \
+CLOUDFLARE_CODENAME="$(grep '^VERSION_CODENAME=' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"')"
+if [ -z "$CLOUDFLARE_CODENAME" ]; then
+    CLOUDFLARE_CODENAME="trixie"
+fi
+echo "deb [signed-by=$CLOUDFLARE_KEY] https://pkg.cloudflareclient.com/ $CLOUDFLARE_CODENAME main" \
     > /etc/apt/sources.list.d/cloudflare-client.list
 ##############################################
 # PROTONVPN APT REPO (via repo package)
