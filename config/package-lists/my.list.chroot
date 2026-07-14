@@ -18,6 +18,9 @@ chrony
 zsh
 gh
 gdu
+mpv
+distrobox
+stress-ng
 
 # scrcpy support
 android-sdk-platform-tools
